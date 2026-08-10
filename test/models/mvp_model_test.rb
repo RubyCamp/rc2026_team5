@@ -9,7 +9,7 @@ class MvpModelTest < ActiveSupport::TestCase
     )
 
     @skill = Skill.create!(
-      code: "CLEANING",
+      code: "MVP_MODEL_TEST_CLEANING",
       name: "清掃"
     )
 

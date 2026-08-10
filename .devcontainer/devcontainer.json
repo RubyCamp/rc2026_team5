@@ -2,7 +2,7 @@
   "name": "rc2026-base",
   "dockerComposeFile": "compose.yaml",
   "service": "rails-app",
-  "workspaceFolder": "/workspaces/rc2026_base",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "features": {
   "ghcr.io/devcontainers/features/github-cli:1": {},
   "ghcr.io/rails/devcontainer/features/postgres-client": {},
