@@ -11,6 +11,7 @@
   "containerEnv": {
   "RAILS_ENV": "development"
 },
+"waitFor": "postCreateCommand",
 "postCreateCommand": "bin/setup --skip-server",
 "forwardPorts": [3000, 5432],
   "customizations": {
