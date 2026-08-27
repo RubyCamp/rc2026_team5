@@ -10,13 +10,14 @@
 
 - `origin/main`
 
-共通基盤の確定した変更は`main`へ保存する。
+共通基盤の確定した変更は、作業ブランチからPRを作成して`main`へ反映する。
 
 ## 基本方針
 
 - 作業開始前に現在のブランチを確認する
 - 変更内容を確認してからcommitする
 - 動作確認が成功してからpushする
+- `main`への変更はPRを経由する
 - `main`の履歴を強制的に書き換えない
 - `git push --force`は使用しない
 - 他の作業者のcommitを勝手に削除しない
@@ -26,10 +27,18 @@
 ```bash
 git branch
 git status
-git pull origin main
+git pull --ff-only origin main
 ```
 
 現在のブランチが`main`であることと、未保存の変更がないことを確認する。
+
+本番課題では、`main`から作業ブランチを作成する。
+
+```bash
+git switch -c feature/作業内容
+```
+
+チュートリアルでは`tutorial/<GitHub-ID>`を使用し、チュートリアルの変更を`main`へマージしない。
 
 ## 変更内容の確認
 
@@ -53,13 +62,17 @@ git commit -m "変更内容を表すメッセージ"
 
 すべてのファイルを無条件で追加するのではなく、対象ファイルを確認してから`git add`する。
 
-## push
+## pushとPR
 
 ```bash
-git push origin main
+git push -u origin HEAD
 ```
 
-push後はGitHub Actionsを確認し、すべてのjobが成功していることを確認する。
+push後はGitHub上で`main`向けのPRを作成する。
+
+PRでは変更内容と確認結果を記載し、必要なレビューを受けてから`main`へ反映する。
+
+GitHub Actionsが実行された場合は、結果を確認してからマージする。
 
 ## commit履歴の確認
 
@@ -97,7 +110,7 @@ feature/staff-assignment
 fix/availability-validation
 ```
 
-作業完了後は、テストと差分を確認してから`main`へ統合する。
+作業完了後は、テストと差分を確認し、PRを通して`main`へ統合する。
 
 ## 禁止事項
 

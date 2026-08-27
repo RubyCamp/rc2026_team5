@@ -143,16 +143,26 @@ end
     end
   end
 
- test "update_details!は実質的な変更がない場合に変更記録を作らない" do
-  assert_no_difference("ChangeEvent.count") do
-    WorkRequest.update_details!(
-      id: @earlier_request.id,
-      attributes: {
-        title: @earlier_request.title
-      }
-    )
+  test "update_details!は備考を更新して変更を記録する" do
+    assert_difference("ChangeEvent.count", 1) do
+      WorkRequest.update_details!(
+        id: @earlier_request.id,
+        attributes: { notes: "正面玄関へ集合" }
+      )
+    end
+
+    assert_equal "正面玄関へ集合", @earlier_request.reload.notes
+    assert_equal "勤務依頼「先の依頼」を更新しました", ChangeEvent.recent.first.summary
   end
-end
+
+  test "update_details!は実質的な変更がない場合に変更記録を作らない" do
+    assert_no_difference("ChangeEvent.count") do
+      WorkRequest.update_details!(
+        id: @earlier_request.id,
+        attributes: { title: @earlier_request.title }
+      )
+    end
+  end
   test "変更記録の保存に失敗した場合は勤務依頼の登録も取り消す" do
     attributes = {
       business: @earlier_request.business,

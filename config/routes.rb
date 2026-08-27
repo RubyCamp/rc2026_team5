@@ -16,7 +16,7 @@ Rails.application.routes.draw do
     # root "posts#index"
     root "work_requests#index"
 
-  resources :work_requests, only: [ :index, :show ]
+  resources :work_requests, only: %i[index show edit update]
   resources :staff_members, only: [ :index ]
   get "examples/local-data",
     to: "examples#local_data",
