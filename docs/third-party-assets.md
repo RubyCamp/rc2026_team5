@@ -2,32 +2,20 @@
 
 ## 目的
 
-この資料では、共通基盤で使用している外部ライブラリのファイルと管理方針を記録する。
-
-## Bootstrap
-
-画面のレイアウトや部品にはBootstrapを使用している。
-
-### JavaScriptのversion
-
-Bootstrap JavaScriptのファイルから、次のversionを確認した。
-# 外部アセット
-
-## 目的
-
 この資料では、共通基盤で使用している外部ライブラリと、その配置場所を記録する。
 
 ## Bootstrap
 
 画面のレイアウトや部品にはBootstrapを使用している。
 
-Bootstrap JavaScriptのファイルから、次のversionを確認した。
+| 項目 | 内容 |
+|---|---|
+| 配布元 | [Bootstrap公式サイト](https://getbootstrap.com/) |
+| version | 5.3.8 |
+| ライセンス | MIT License |
 
-```text
-Bootstrap v5.3.8
-```
-
-Bootstrap CSSについては、今回の確認ではファイル内からversion表記を取得できなかった。
+Bootstrap JavaScriptのファイルから、version 5.3.8を確認した。
+Bootstrap CSSについては、ファイル内からversion表記を取得できなかった。
 
 ## Bootstrapファイルの配置場所
 
@@ -51,7 +39,7 @@ app/assets/javascripts/bootstrap.bundle.min.js
 app/views/layouts/application.html.erb
 ```
 
-現在の読み込み部分は次のとおりである。
+読み込み部分は次のとおりである。
 
 ```erb
 <%= stylesheet_link_tag "bootstrap.min",
@@ -115,5 +103,3 @@ bin/ci
 圧縮済みのCSSやJavaScriptを直接編集しない。
 
 変更が必要な場合は、配布元の正しいファイルへ置き換え、versionやライセンスを確認する。
-```text
-Bootstrap v5.3.8

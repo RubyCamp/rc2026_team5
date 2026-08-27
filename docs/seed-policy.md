@@ -25,11 +25,4 @@
 
 ```sh
 bin/rails db:drop db:create db:migrate db:seed
-
-
-この文書は、seedの冪等性、代表ケース、基準件数、破壊的なDB初期化を共通DBで行わないことを明文化するものです。
-
-# 2．変更ファイルを確認する
-
-```bash
-git status --short
+```

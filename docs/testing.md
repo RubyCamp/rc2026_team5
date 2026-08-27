@@ -109,7 +109,7 @@ Continuous Integration passed
 
 ## GitHub Actions
 
-`main`へpushすると、GitHub Actionsが自動的に実行される。
+作業ブランチをpushしてPRを作成または更新すると、GitHub Actionsが自動的に実行される。
 
 現在のjobは次のとおりである。
 

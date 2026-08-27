@@ -25,3 +25,4 @@ test環境では`TEST_DATABASE_URL`を使用する。
 ```text
 DATABASE_URL=postgresql://user:password@host:5432/database_name
 TEST_DATABASE_URL=postgresql://user:password@host:5432/test_database_name
+```

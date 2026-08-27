@@ -111,6 +111,5 @@ jobs:
         env:
           RAILS_ENV: test
           TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/rc2026_base_test
-          # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
