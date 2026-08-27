@@ -4,9 +4,13 @@ updates:
   directory: "/"
   schedule:
     interval: weekly
-  open-pull-requests-limit: 10
+  # Ruby合宿期間中は通常のversion update PRを停止。
+  # security update PRは引き続き対象。
+  open-pull-requests-limit: 0
 - package-ecosystem: github-actions
   directory: "/"
   schedule:
     interval: weekly
-  open-pull-requests-limit: 10
+  # Ruby合宿期間中は通常のversion update PRを停止。
+  # security update PRは引き続き対象。
+  open-pull-requests-limit: 0
