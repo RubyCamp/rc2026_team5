@@ -23,6 +23,8 @@ class WorkRequestsController < ApplicationController
 
     redirect_to @work_request, notice: "勤務依頼の備考を更新しました。"
   rescue ActiveRecord::RecordInvalid => error
+    raise unless error.record.is_a?(WorkRequest)
+
     @work_request = error.record
     render :edit, status: :unprocessable_content
   rescue ActiveRecord::RecordNotFound

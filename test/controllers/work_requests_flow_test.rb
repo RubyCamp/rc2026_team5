@@ -55,4 +55,19 @@ class WorkRequestsFlowTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", work_request_path(@work_request)
     assert_select "textarea[name=?]", "work_request[notes]", text: "集合場所は正面玄関"
   end
+
+  test "勤務依頼以外のRecordInvalidは編集画面へ渡さない" do
+    error = ActiveRecord::RecordInvalid.new(ChangeEvent.new)
+    original = WorkRequest.method(:update_details!)
+    WorkRequest.define_singleton_method(:update_details!) { |**| raise error }
+
+    patch work_request_path(@work_request), params: {
+      work_request: { notes: "変更後の備考" }
+    }
+
+    assert_response :unprocessable_content
+    assert_not_includes response.body, "勤務依頼の備考を編集"
+  ensure
+    WorkRequest.define_singleton_method(:update_details!, original)
+  end
 end
