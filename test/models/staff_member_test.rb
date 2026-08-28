@@ -213,6 +213,106 @@ class StaffMemberTest < ActiveSupport::TestCase
     assert_equal [ staff_member ], result.to_a
   end
 
+  test "proficiency_label_forは該当スキルの習熟度ラベルを返し未保有ならnilを返す" do
+    skill = Skill.create!(
+      code: "PROFICIENCY_#{SecureRandom.hex(4)}",
+      name: "習熟度テストスキル"
+    )
+    other_skill = Skill.create!(
+      code: "PROFICIENCY_OTHER_#{SecureRandom.hex(4)}",
+      name: "未保有スキル"
+    )
+    StaffSkill.create!(
+      staff_member: @active_later,
+      skill: skill,
+      proficiency_label: "指導可能"
+    )
+
+    assert_equal "指導可能", @active_later.proficiency_label_for(
+      skill_id: skill.id
+    )
+    assert_nil @active_later.proficiency_label_for(skill_id: other_skill.id)
+  end
+
+  test "confirmed_assignment_countはconfirmedだけを数え事業者で絞り込める" do
+    first_business = Business.create!(
+      name: "件数テスト事業者1",
+      contact_name: "担当者",
+      contact_phone: "00-0000-0001"
+    )
+    second_business = Business.create!(
+      name: "件数テスト事業者2",
+      contact_name: "担当者",
+      contact_phone: "00-0000-0002"
+    )
+
+    first_confirmed = create_counted_assignment(
+      business: first_business,
+      staff_member: @active_later
+    )
+    Assignment.confirm!(id: first_confirmed.id)
+
+    second_confirmed = create_counted_assignment(
+      business: second_business,
+      staff_member: @active_later
+    )
+    Assignment.confirm!(id: second_confirmed.id)
+
+    draft = create_counted_assignment(
+      business: first_business,
+      staff_member: @active_later
+    )
+
+    assert_equal 2, @active_later.confirmed_assignment_count
+    assert_equal 1, @active_later.confirmed_assignment_count(
+      business_id: first_business.id
+    )
+    assert_equal 1, @active_later.confirmed_assignment_count(
+      business_id: second_business.id
+    )
+    refute_predicate draft, :confirmed?
+  end
+
+  test "draft_for_confirmationは確認画面用の関連をpreloadする" do
+    business = Business.create!(
+      name: "preloadテスト事業者",
+      contact_name: "担当者",
+      contact_phone: "00-0000-0003"
+    )
+    skill = Skill.create!(
+      code: "PRELOAD_#{SecureRandom.hex(4)}",
+      name: "preloadテストスキル"
+    )
+    work_request = WorkRequest.create!(
+      business: business,
+      required_skill: skill,
+      title: "preloadテスト依頼",
+      starts_at: Time.zone.local(2026, 8, 20, 10),
+      ends_at: Time.zone.local(2026, 8, 20, 12),
+      required_staff_count: 1,
+      status: :open
+    )
+    StaffSkill.create!(
+      staff_member: @active_later,
+      skill: skill,
+      proficiency_label: "対応可能"
+    )
+    assignment = Assignment.assign!(
+      work_request_id: work_request.id,
+      staff_member_id: @active_later.id
+    )
+
+    result = Assignment.draft_for_confirmation.where(id: assignment.id).to_a
+    loaded = result.first
+
+    assert_predicate loaded.association(:staff_member), :loaded?
+    assert_predicate loaded.staff_member.association(:staff_skills), :loaded?
+    assert_predicate loaded.staff_member.staff_skills.first.association(:skill), :loaded?
+    assert_predicate loaded.association(:work_request), :loaded?
+    assert_predicate loaded.work_request.association(:business), :loaded?
+    assert_predicate loaded.work_request.association(:required_skill), :loaded?
+  end
+
   private
 
   def create_work_request
@@ -238,6 +338,27 @@ class StaffMemberTest < ActiveSupport::TestCase
     )
 
     [ work_request, skill ]
+  end
+
+  def create_counted_assignment(business:, staff_member:)
+    skill = Skill.create!(
+      code: "COUNT_#{SecureRandom.hex(4)}",
+      name: "件数テストスキル"
+    )
+    work_request = WorkRequest.create!(
+      business: business,
+      required_skill: skill,
+      title: "件数テスト依頼",
+      starts_at: Time.zone.local(2026, 8, 20, 10),
+      ends_at: Time.zone.local(2026, 8, 20, 12),
+      required_staff_count: 1,
+      status: :open
+    )
+
+    Assignment.assign!(
+      work_request_id: work_request.id,
+      staff_member_id: staff_member.id
+    )
   end
 
   def create_candidate(
