@@ -102,6 +102,108 @@ end
     assert_equal [ draft_assignment ], result.to_a
   end
 
+  test "overlapping_forは同じスタッフの時間が重なる別割当だけを返す" do
+    target = Assignment.assign!(
+      work_request_id: @work_request.id,
+      staff_member_id: @staff_member.id
+    )
+
+    overlapping_request = create_work_request(
+      title: "重複する依頼",
+      starts_at: Time.zone.local(2026, 8, 20, 11),
+      ends_at: Time.zone.local(2026, 8, 20, 13)
+    )
+    overlapping = Assignment.assign!(
+      work_request_id: overlapping_request.id,
+      staff_member_id: @staff_member.id
+    )
+
+    adjacent_request = create_work_request(
+      title: "隣接する依頼",
+      starts_at: Time.zone.local(2026, 8, 20, 12),
+      ends_at: Time.zone.local(2026, 8, 20, 14)
+    )
+    adjacent = Assignment.assign!(
+      work_request_id: adjacent_request.id,
+      staff_member_id: @staff_member.id
+    )
+
+    other_staff = StaffMember.create!(
+      name: "別スタッフ",
+      employment_status: :active
+    )
+    other_staff_assignment = Assignment.assign!(
+      work_request_id: overlapping_request.id,
+      staff_member_id: other_staff.id
+    )
+
+    cancelled_request = create_work_request(
+      title: "取消済みの依頼",
+      starts_at: Time.zone.local(2026, 8, 20, 11),
+      ends_at: Time.zone.local(2026, 8, 20, 13),
+      status: :cancelled
+    )
+    cancelled = Assignment.assign!(
+      work_request_id: cancelled_request.id,
+      staff_member_id: @staff_member.id
+    )
+
+    result = Assignment.overlapping_for(id: target.id)
+
+    assert_kind_of ActiveRecord::Relation, result
+    assert_equal [ overlapping ], result.to_a
+    refute_includes result, target
+    refute_includes result, adjacent
+    refute_includes result, other_staff_assignment
+    refute_includes result, cancelled
+  end
+
+  test "overlapping_forは対象依頼が取消済みなら空Relationを返す" do
+    target = Assignment.assign!(
+      work_request_id: @work_request.id,
+      staff_member_id: @staff_member.id
+    )
+    @work_request.cancelled!
+
+    result = Assignment.overlapping_for(id: target.id)
+
+    assert_kind_of ActiveRecord::Relation, result
+    assert_empty result
+  end
+
+  test "time_conflict?は重複の有無をBooleanで返す" do
+    target = Assignment.assign!(
+      work_request_id: @work_request.id,
+      staff_member_id: @staff_member.id
+    )
+    overlapping_request = create_work_request(
+      title: "重複判定依頼",
+      starts_at: Time.zone.local(2026, 8, 20, 11),
+      ends_at: Time.zone.local(2026, 8, 20, 13)
+    )
+    Assignment.assign!(
+      work_request_id: overlapping_request.id,
+      staff_member_id: @staff_member.id
+    )
+
+    assert_equal true, Assignment.time_conflict?(id: target.id)
+
+    no_conflict_request = create_work_request(
+      title: "重複なし判定依頼",
+      starts_at: Time.zone.local(2026, 8, 20, 12),
+      ends_at: Time.zone.local(2026, 8, 20, 14)
+    )
+    no_conflict = Assignment.assign!(
+      work_request_id: no_conflict_request.id,
+      staff_member_id: StaffMember.create!(
+        name: "重複なしスタッフ",
+        employment_status: :active
+      ).id
+    )
+
+    assert_equal false, Assignment.time_conflict?(id: no_conflict.id)
+  end
+
   test "confirm!は確定した割当を返す" do
     assignment = Assignment.assign!(
       work_request_id: @work_request.id,
@@ -149,4 +251,33 @@ end
     "割当を解除しました"
   )
 end
+
+  private
+
+  def create_work_request(
+    title:,
+    starts_at:,
+    ends_at:,
+    status: :open
+  )
+    business = Business.create!(
+      name: "割当テスト事業者 #{SecureRandom.hex(4)}",
+      contact_name: "担当者",
+      contact_phone: "00-0000-0000"
+    )
+    skill = Skill.create!(
+      code: "ASSIGNMENT_HELPER_#{SecureRandom.hex(4)}",
+      name: "割当テストスキル #{SecureRandom.hex(4)}"
+    )
+
+    WorkRequest.create!(
+      business: business,
+      required_skill: skill,
+      title: title,
+      starts_at: starts_at,
+      ends_at: ends_at,
+      required_staff_count: 1,
+      status: status
+    )
+  end
 end

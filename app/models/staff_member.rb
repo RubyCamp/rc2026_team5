@@ -52,4 +52,21 @@ class StaffMember < ApplicationRecord
       .distinct
       .order(:name)
   end
+
+  def proficiency_label_for(skill_id:)
+    staff_skill = staff_skills.find do |staff_skill|
+      staff_skill.skill_id == skill_id
+    end
+
+    staff_skill&.proficiency_label
+  end
+
+  def confirmed_assignment_count(business_id: nil)
+    relation = assignments.confirmed
+
+    relation = relation.joins(:work_request)
+                       .where(work_requests: { business_id: business_id }) if business_id
+
+    relation.count
+  end
 end

@@ -14,9 +14,34 @@ class Assignment < ApplicationRecord
   end
 
   def self.draft_for_confirmation
-    includes(:staff_member, work_request: :business)
+    includes(
+      { staff_member: { staff_skills: :skill } },
+      work_request: [ :business, :required_skill ]
+    )
       .where(status: :draft)
       .order("work_requests.starts_at", :created_at)
+  end
+
+  def self.overlapping_for(id:)
+    assignment = find(id)
+    work_request = assignment.work_request
+    return none if work_request.cancelled?
+
+    joins(:work_request)
+      .where(staff_member_id: assignment.staff_member_id)
+      .where.not(id: id)
+      .where.not(work_requests: { status: :cancelled })
+      .where(
+        "work_requests.starts_at < :target_ends_at " \
+        "AND work_requests.ends_at > :target_starts_at",
+        target_ends_at: work_request.ends_at,
+        target_starts_at: work_request.starts_at
+      )
+      .order("work_requests.starts_at", :created_at)
+  end
+
+  def self.time_conflict?(id:)
+    overlapping_for(id: id).exists?
   end
 
   def self.assign!(work_request_id:, staff_member_id:)
