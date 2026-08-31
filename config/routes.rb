@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
   get "tutorial", to: "tutorials#index", as: :tutorial
   get "tutorial/debug", to: "tutorials#debug", as: :tutorial_debug
+  get "tutorial/profiles/:id", to: "tutorials#profiles", as: :tutorial_profile
 
     # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
     # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
