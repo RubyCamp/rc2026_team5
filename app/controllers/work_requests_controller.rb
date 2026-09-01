@@ -55,7 +55,8 @@ class WorkRequestsController < ApplicationController
         if !@work_request.staffing_sufficient?
           logger.debug "ループに入りました"
           if !@assignment.time_conflict?
-          @assignments.assign!(work_request_id: _requests_id, staff_member_id: staff.id)
+            @assignments.assign!(work_request_id: _requests_id, staff_member_id: staff.id)
+          end
         end
       end
 
@@ -76,5 +77,4 @@ class WorkRequestsController < ApplicationController
   def work_request_params
     params.expect(work_request: [ :notes ])
   end
-
 end
