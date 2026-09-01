@@ -35,7 +35,10 @@ class WorkRequestsController < ApplicationController
   def shift
     @staff_members = StaffMember
       .includes(:skills, :availabilities)
-      .order(:name)
+      .order(:id)
+    @work_requests = WorkRequest
+      .includes(:business, :required_skill, assignments: :staff_member)
+      .order(:starts_at)
   end
   private
 
