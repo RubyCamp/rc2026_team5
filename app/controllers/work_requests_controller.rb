@@ -36,4 +36,7 @@ class WorkRequestsController < ApplicationController
   def work_request_params
     params.expect(work_request: [ :notes ])
   end
+
+  def shift
+  end
 end

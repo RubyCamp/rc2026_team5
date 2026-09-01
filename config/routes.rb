@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   get "tutorial", to: "tutorials#index", as: :tutorial
   get "tutorial/debug", to: "tutorials#debug", as: :tutorial_debug
 
+    get "work_requests/shift", to: "work_requests#shift"
     # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
     # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
     # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
