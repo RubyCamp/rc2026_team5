@@ -31,12 +31,16 @@ class WorkRequestsController < ApplicationController
     redirect_to work_requests_path, alert: "更新する勤務依頼が見つかりませんでした。"
   end
 
+
+  def shift
+    @staff_members = StaffMember
+      .includes(:skills, :availabilities)
+      .order(:name)
+  end
   private
 
   def work_request_params
     params.expect(work_request: [ :notes ])
   end
 
-  def shift
-  end
 end

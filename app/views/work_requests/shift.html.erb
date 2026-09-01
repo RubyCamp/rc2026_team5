@@ -1,1 +1,11 @@
 <% content_for :title, "シフト表" %>
+
+<table border="1">
+    <% @staff_members.each do |staff_member| %>
+
+      <tr>
+        <th>
+              <%= staff_member.name %></th>
+        </tr>
+    <% end %>
+</table>
