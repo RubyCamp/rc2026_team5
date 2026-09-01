@@ -47,6 +47,7 @@
     </h2>
 
     <dl class="definition-list mb-0">
+
       <div>
         <dt>必要人数</dt>
         <dd>
@@ -68,6 +69,7 @@
           <%= @work_request.assignments.size %>名
         </dd>
       </div>
+
     </dl>
   </div>
 </section>
@@ -126,4 +128,4 @@
 
   </div>
 </section>
-<%= button_to "仮割当ボタン", {controller: 'work_requests', action: 'index'}, {method: :get} %>
+<%= button_to "仮割当ボタン", {controller: 'work_requests', action: 'draft'}, {method: :get, params: {id: @work_request.id}} %>

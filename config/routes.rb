@@ -9,6 +9,12 @@ Rails.application.routes.draw do
   get "tutorial/debug", to: "tutorials#debug", as: :tutorial_debug
   get "tutorial/profiles/:id", to: "tutorials#profiles", as: :tutorial_profile
 
+  # --- ADD --- 2026/09/01 sou 仮割当ページへの画面遷移機能実装  --- start ---
+
+  get "work_requests/draft", to: "work_requests#draft", as: :draft
+
+    # --- ADD --- 2026/09/01 sou 仮割当ページへの画面遷移機能実装  --- end ---
+
     # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
     # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
     # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
