@@ -3,11 +3,20 @@
   <%= render partial: "work_requests/assignments", locals: { assignments: @work_request.assignments.reload } %>
 <% end %>
 
-<%# 必要人数に届かなかった場合だけ、開いているポップアップへ表示する。 %>
-<%= turbo_stream.update "draft-assignment-error" do %>
-  <% if @staffing_shortage_count.positive? %>
+<%# 人数不足時も、仮割当で追加された人数を依頼条件へ反映する。 %>
+<%= turbo_stream.update "work-request-assigned-count" do %>
+  <%= @work_request.assignments.reload.size %>
+<% end %>
+
+<% if @staffing_shortage_count.positive? %>
+  <%= turbo_stream.update "draft-assignment-result" do %>
     <div class="alert alert-danger mt-3 mb-0" role="alert">
-      必要人数に対して<%= @staffing_shortage_count %>名不足しています。
+      <p class="mb-1">仮割当が完了しました。</p>
+      <p class="mb-0">実行結果：エラー（必要人数に対して<%= @staffing_shortage_count %>名不足しています。）</p>
     </div>
+  <% end %>
+
+  <%= turbo_stream.update "draft-assignment-modal-footer" do %>
+    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
   <% end %>
 <% end %>
