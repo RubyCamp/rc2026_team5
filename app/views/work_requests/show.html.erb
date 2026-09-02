@@ -90,59 +90,10 @@
 </section>
 
 <turbo-frame id="work-request-assignments">
-<section class="card shadow-sm">
-  <div class="card-body">
-    <h2 class="h4 card-title">
-      現在の割当
-    </h2>
-
-    <% if @work_request.assignments.any? %>
-      <ul class="list-group list-group-flush">
-        <% @work_request.assignments.each do |assignment| %>
-          <li
-            class="
-              list-group-item
-              px-0
-              d-flex
-              justify-content-between
-              align-items-center
-              gap-3
-            "
-          >
-            <strong>
-              <%= assignment.staff_member.name %>
-            </strong>
-
-            <span class="badge text-bg-secondary">
-              <%= enum_label(assignment, :status) %>
-            </span>
-            <% if assignment.draft? %>
-              <%= link_to "解除",
-                    work_request_assignment_path(
-                      work_request_id: @work_request.id,
-                      id: assignment.id
-                    ),
-                    class: "btn btn-sm btn-outline-danger",
-                    data: {
-                      turbo_method: :delete,
-                      turbo_confirm: "#{assignment.staff_member.name}さんの仮割当を解除しますか？"
-                    } %>
-            <% end %>
-
-          </li>
-        <% end %>
-      </ul>
-    <% else %>
-      <p class="mb-0 text-body-secondary">
-        まだスタッフは割り当てられていません。
-      </p>
-
-    <% end %>
-
-
-  </div>
-</section>
+  <%= render partial: "work_requests/assignments",
+        locals: { assignments: @work_request.assignments } %>
 </turbo-frame>
+
 
 <!-- 仮割当の結果はshowページに表示するため、ここでは確認だけ行う。 -->
 <button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#draftAssignmentModal">
@@ -151,6 +102,7 @@
 <button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#draftAssignmentModal">
   割当解除
 </button>
+
 <!-- ポップアップ部分 -->
 <div class="modal fade" id="draftAssignmentModal" tabindex="-1" aria-labelledby="draftAssignmentModalLabel" aria-hidden="true">
   <div class="modal-dialog">

@@ -8,16 +8,50 @@
             <strong><%= assignment.staff_member.name %></strong>
             <span class="badge text-bg-secondary"><%= enum_label(assignment, :status) %></span>
             <% if assignment.draft? %>
-              <%= link_to "解除",
-                    work_request_assignment_path(
-                      work_request_id: assignment.work_request_id,
-                      id: assignment.id
-                    ),
-                    class: "btn btn-sm btn-outline-danger",
-                    data: {
-                      turbo_method: :delete,
-                      turbo_confirm: "#{assignment.staff_member.name}さんの仮割当を解除しますか？"
-                    } %>
+              <button type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      data-bs-toggle="modal"
+                      data-bs-target="#unassignAssignmentModal-<%= assignment.id %>">
+                解除
+              </button>
+
+              <div class="modal fade"
+                   id="unassignAssignmentModal-<%= assignment.id %>"
+                   tabindex="-1"
+                   aria-labelledby="unassignAssignmentModalLabel-<%= assignment.id %>"
+                   aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h2 class="modal-title fs-5"
+                          id="unassignAssignmentModalLabel-<%= assignment.id %>">
+                        仮割当解除の確認
+                      </h2>
+                      <button type="button"
+                              class="btn-close"
+                              data-bs-dismiss="modal"
+                              aria-label="閉じる"></button>
+                    </div>
+                    <div class="modal-body">
+                      <%= assignment.staff_member.name %>さんの仮割当を解除しますか？
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button"
+                              class="btn btn-secondary"
+                              data-bs-dismiss="modal">
+                        キャンセル
+                      </button>
+                      <%= link_to "解除する",
+                            work_request_assignment_path(
+                              work_request_id: assignment.work_request_id,
+                              id: assignment.id
+                            ),
+                            class: "btn btn-danger",
+                            data: { turbo_method: :delete } %>
+                    </div>
+                  </div>
+                </div>
+              </div>
             <% end %>
 
           </li>
