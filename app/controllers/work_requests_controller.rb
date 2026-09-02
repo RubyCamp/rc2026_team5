@@ -34,7 +34,10 @@ class WorkRequestsController < ApplicationController
   # 仮割当取得用
   def draft
     @work_request = WorkRequest.find(params[:id])
-    @staff_members = StaffMember.available_for(work_request_id: @work_request.id)
+    # 必要人数を超えて候補者を取得・仮割当しないよう、不足人数分に制限する。
+    @staff_members = StaffMember
+      .available_for(work_request_id: @work_request.id)
+      .limit(@work_request.staffing_shortage_count)
 
     @staff_members.each do |staff|
       break if @work_request.reload.staffing_sufficient?
