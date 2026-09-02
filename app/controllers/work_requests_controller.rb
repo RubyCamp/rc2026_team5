@@ -33,54 +33,22 @@ class WorkRequestsController < ApplicationController
 
   # 仮割当取得用
   def draft
-    logger.debug "画面が遷移しました"
+    @work_request = WorkRequest.find(params[:id])
+    @staff_members = StaffMember.available_for(work_request_id: @work_request.id)
 
-    _requests_id = params[:id]   # 対象の勤務依頼IDを取得
+    @staff_members.each do |staff|
+      break if @work_request.reload.staffing_sufficient?
 
-    @assignments = Assignment.all
-    @work_request = WorkRequest.find(_requests_id)  # 対象の勤務依頼を取得
-    # @staff_member = StaffMember.all
-    @staff_member = StaffMember.available_for(work_request_id: _requests_id)   # @StaffMemberに勤務可能なスタッフを取得
-    _suffer = @work_request.staffing_shortage_count()
-
-    logger.debug "最後のDBのID"
-
-    # 10.times do |i|
-    #   @assignments.unassign!(id:i+28)
-    # end
-
-    if !@work_request.staffing_sufficient?
-
-      @staff_member.each do |staff|
-        if !@work_request.staffing_sufficient?
-          logger.debug "ループに入りました"
-            # if !@assignments.time_conflict?(id: )
-            @assignments.assign!(work_request_id: _requests_id, staff_member_id: staff.id)
-          # end
-        end
-      end
-
-      logger.debug "ifに入りましt"
-      logger.debug "#{_suffer}人不足しています"
-
-      # _suffer.times do |i|
-      #   @assignments.assign!(work_request_id: _requests_id, staff_member_id: )
-      # end
-
-      logger.debug "終了"
-
+      Assignment.assign!(
+        work_request_id: @work_request.id,
+        staff_member_id: staff.id
+      )
     end
 
     # 追加処理後のDBの人数を読み直し、不足人数を画面へ渡す。
     @staffing_shortage_count = @work_request.reload.staffing_shortage_count
 
-    # JavaScriptからTurbo-Frameヘッダー付きで呼ばれた場合だけ、
-    # 割当欄のHTML（draft.html.erb）を返す。
-    # ブラウザが通常のリンクとして開いた場合は、
-    # draft.html.erbを単独ページとして表示せず、元のshowページへ戻す。
     respond_to do |format|
-      # 人数不足時はポップアップを開いたままエラーを表示する。
-      # 成功時はshowページへ戻して、ページの再表示と同時にポップアップを閉じる。
       format.turbo_stream do
         if @staffing_shortage_count.positive?
           render :draft
@@ -98,6 +66,19 @@ class WorkRequestsController < ApplicationController
     end
   end
 
+  def destroy_assignment
+    @work_request = WorkRequest.find(params[:work_request_id])
+    assignment = @work_request.assignments.find(params[:id])
+
+    Assignment.unassign!(id: assignment.id)
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html do
+        redirect_to @work_request, notice: "#{assignment.staff_member.name}さんの仮割当を解除しました。"
+      end
+    end
+  end
 
   def shift
     @staff_members = StaffMember

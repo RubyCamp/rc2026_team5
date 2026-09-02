@@ -42,8 +42,20 @@
 
 <!-- ---------------ボタンの場所、デザイン変更2026/09/02 -->
 <div class="gap-3 mb-4 text-end">
-<%= button_to "仮割当ボタン", {controller: 'work_requests', action: 'draft'}, {method: :get, params: {id: @work_request.id}, class: 'btn btn-primary '} %>
+<button type="button"
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#draftAssignmentModal">
+  仮割当
+</button>
+<button type="button"
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#draftAssignmentModal">
+  仮割当
+</button>
 </div>
+
 <!--  ---------------ボタンの場所、デザイン変更 END -->
 <section class="card shadow-sm mb-4">
   <div class="card-body">
@@ -95,51 +107,18 @@
 </section>
 
 <turbo-frame id="work-request-assignments">
-<section class="card shadow-sm">
-  <div class="card-body">
-    <h2 class="h4 card-title">
-      現在の割当
-    </h2>
-
-    <% if @work_request.assignments.any? %>
-      <ul class="list-group list-group-flush">
-        <% @work_request.assignments.each do |assignment| %>
-          <li
-            class="
-              list-group-item
-              px-0
-              d-flex
-              justify-content-between
-              align-items-center
-              gap-3
-            "
-          >
-            <strong>
-              <%= assignment.staff_member.name %>
-            </strong>
-
-            <span class="badge text-bg-secondary">
-              <%= enum_label(assignment, :status) %>
-            </span>
-          </li>
-        <% end %>
-      </ul>
-    <% else %>
-      <p class="mb-0 text-body-secondary">
-        まだスタッフは割り当てられていません。
-      </p>
-
-    <% end %>
-
-
-  </div>
-</section>
+  <%= render partial: "work_requests/assignments",
+        locals: { assignments: @work_request.assignments } %>
 </turbo-frame>
 
+
 <!-- 仮割当の結果はshowページに表示するため、ここでは確認だけ行う。 -->
-<button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#draftAssignmentModal">
-  仮割当
-</button>
+<!-- <button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#draftAssignmentModal"> -->
+  <!-- 仮割当 -->
+<!-- </button> -->
+<!-- <button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#draftAssignmentModal"> -->
+  <!-- 割当解除 -->
+<!-- </button> -->
 
 <!-- ポップアップ部分 -->
 <div class="modal fade" id="draftAssignmentModal" tabindex="-1" aria-labelledby="draftAssignmentModalLabel" aria-hidden="true">
