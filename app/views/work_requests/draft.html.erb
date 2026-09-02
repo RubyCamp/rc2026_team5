@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!-- GETのレスポンスとして、showページ内の割当欄だけを差し替える。 -->
 <turbo-frame id="work-request-assignments">
   <%# 仮割当直後の最新状態をDBから読み直してshow側へ返す。 %>
@@ -20,3 +21,9 @@
     </div>
   </section>
 </turbo-frame>
+=======
+<h1>仮割当が完了しました．</h1>
+<div class="gap-2 mb-4 text-end">
+<%= button_to "戻る", {controller: 'work_requests', action: 'index'}, {method: :get, class:'btn btn-primary ' } %>
+</div>
+>>>>>>> d7d38ec (スタッフ一覧の表示を直した)
