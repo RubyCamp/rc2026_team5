@@ -1,0 +1,13 @@
+<%# 仮割当後、showページの割当欄だけを更新する。 %>
+<%= turbo_stream.update "work-request-assignments" do %>
+  <%= render partial: "work_requests/assignments", locals: { assignments: @work_request.assignments.reload } %>
+<% end %>
+
+<%# 必要人数に届かなかった場合だけ、開いているポップアップへ表示する。 %>
+<%= turbo_stream.update "draft-assignment-error" do %>
+  <% if @staffing_shortage_count.positive? %>
+    <div class="alert alert-danger mt-3 mb-0" role="alert">
+      必要人数に対して<%= @staffing_shortage_count %>名不足しています。
+    </div>
+  <% end %>
+<% end %>

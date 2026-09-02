@@ -24,7 +24,7 @@
       <%= @work_request.business.name %>
     </p>
 
-    <h1 class="display-6 fw-bold">
+    <h1 class="display-6 fw-git bold">
       <%= @work_request.title %>
     </h1>
 
@@ -89,6 +89,7 @@
   </div>
 </section>
 
+<turbo-frame id="work-request-assignments">
 <section class="card shadow-sm">
   <div class="card-body">
     <h2 class="h4 card-title">
@@ -128,4 +129,30 @@
 
   </div>
 </section>
-<%= button_to "仮割当ボタン", {controller: 'work_requests', action: 'draft'}, {method: :get, params: {id: @work_request.id}} %>
+</turbo-frame>
+
+<!-- 仮割当の結果はshowページに表示するため、ここでは確認だけ行う。 -->
+<button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#draftAssignmentModal">
+  仮割当
+</button>
+
+<div class="modal fade" id="draftAssignmentModal" tabindex="-1" aria-labelledby="draftAssignmentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="draftAssignmentModalLabel">仮割当の確認</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+      </div>
+      <div class="modal-body">
+        仮割当を実行しますか？
+        <!-- Turbo Streamで人数不足のメッセージをここへ表示する。 -->
+        <div id="draft-assignment-error"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+        <!-- GETで既存の仮割当処理を呼び、割当欄だけを更新する。 -->
+        <%= link_to "実行する", draft_path(id: @work_request.id), class: "btn btn-primary", data: { turbo_stream: true } %>
+      </div>
+    </div>
+  </div>
+</div>

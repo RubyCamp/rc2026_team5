@@ -1,0 +1,17 @@
+<section class="card shadow-sm">
+  <div class="card-body">
+    <h2 class="h4 card-title">現在の割当</h2>
+    <% if assignments.any? %>
+      <ul class="list-group list-group-flush">
+        <% assignments.each do |assignment| %>
+          <li class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+            <strong><%= assignment.staff_member.name %></strong>
+            <span class="badge text-bg-secondary"><%= enum_label(assignment, :status) %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="mb-0 text-body-secondary">まだスタッフは割り当てられていません。</p>
+    <% end %>
+  </div>
+</section>
