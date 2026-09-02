@@ -40,6 +40,11 @@
   </span>
 </div>
 
+<!-- ---------------ボタンの場所、デザイン変更2026/09/02 -->
+<div class="gap-3 mb-4 text-end">
+<%= button_to "仮割当ボタン", {controller: 'work_requests', action: 'draft'}, {method: :get, params: {id: @work_request.id}, class: 'btn btn-primary '} %>
+</div>
+<!--  ---------------ボタンの場所、デザイン変更 END -->
 <section class="card shadow-sm mb-4">
   <div class="card-body">
     <h2 class="h4 card-title">
@@ -128,4 +133,3 @@
 
   </div>
 </section>
-<%= button_to "仮割当ボタン", {controller: 'work_requests', action: 'draft'}, {method: :get, params: {id: @work_request.id}} %>
