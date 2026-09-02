@@ -47,6 +47,7 @@
     </h2>
 
     <dl class="definition-list mb-0">
+
       <div>
         <dt>必要人数</dt>
         <dd>
@@ -68,6 +69,7 @@
           <%= @work_request.assignments.size %>名
         </dd>
       </div>
+
     </dl>
   </div>
 </section>
@@ -120,6 +122,10 @@
       <p class="mb-0 text-body-secondary">
         まだスタッフは割り当てられていません。
       </p>
+
     <% end %>
+
+
   </div>
 </section>
+<%= button_to "仮割当ボタン", {controller: 'work_requests', action: 'draft'}, {method: :get, params: {id: @work_request.id}} %>
