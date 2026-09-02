@@ -1,21 +1,27 @@
 <% content_for :title, "シフト表" %>
 
 <table border="1">
-    <tr>
-      <th></th>
-      <% @work_requests.each do |work_request| %>
-        <th><%= l work_request.starts_at, format: :short %></th>
-      <% end %>
-      </tr>
-    <% @staff_members.each do |staff_member| %>
-
-      <tr>
-        <th><%= staff_member.name %></th>
-        <% @work_requests.each do |work_request| %>
-          <% if staff_member.id == work_request.assignments.staff_member_id %>
-          <th><%= work_request.business.name %></th>
-          <% end %>
-        <% end %>
-      </tr>
+  <tr>
+    <th></th>
+    <% @work_requests.each do |work_request| %>
+      <th><%= l work_request.starts_at, format: :short %></th>
     <% end %>
+  </tr>
+  <% @staff_members.each_with_index do |staff_member, i| %>
+
+    <tr>
+      <th><%= staff_member.name %></th>
+
+      <% @work_requests.each_with_index do |request, j| %>
+        <th>
+          <%= @graph_assignment[i][j] %>
+          <%# if @draft_reley[staff_member.id][requests.id] == "draft" %>
+            <!-- △ -->
+          <%# else %>
+            <!-- ---- -->
+          <%# end %>
+        </th>
+      <% end %>
+    </tr>
+  <% end %>
 </table>
