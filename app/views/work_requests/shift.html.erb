@@ -47,6 +47,12 @@
           <% end %>
         </tr>
       <% end %>
-    </tbody>
-  </table>
-</div>
+    </tr>
+  <% end %>
+</table>
+
+    # --- ADD --- 2026/09/02 sou シフト表のエクスポートを追加  --- end ---
+<%= button_to "エクスポート",
+              export_work_requests_path,
+              method: :get,
+              form: { data: { turbo: false } } %>
