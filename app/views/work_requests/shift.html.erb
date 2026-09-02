@@ -24,10 +24,15 @@
       </tr>
     </thead>
     <tbody>
+      <!-- ---------------unaveirableの人を濃いグレーに -->
       <% @staff_members.each_with_index do |staff_member, i| %>
-        <tr>
-           <th class="text-start table-light"><%= staff_member.name %></th>
+  <% unavailable = staff_member.availabilities.any? { |a| a.status == "unavailable" } %>
+  <tr>
+    <th class="text-start <%= unavailable ? 'table-secondary' : 'table-light' %>">
+      <%= staff_member.name %>
+    </th>
 
+      <!-- -----------------------------END -->
           <% @work_requests.each_with_index do |request, j| %>
             <% value = @graph_assignment[i][j] %>
             <% cell_class = case value
