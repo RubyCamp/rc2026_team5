@@ -117,6 +117,105 @@ class WorkRequestsController < ApplicationController
       end
     end
   end
+
+  # --- ADD --- 2026/09/02 sou シフト表のエクスポートを追加  --- end ---
+  def export
+    staff_members = StaffMember
+      .includes(:skills, :availabilities)
+      .order(:id)
+      .to_a
+
+    work_requests = WorkRequest
+      .includes(:business, :required_skill, assignments: :staff_member)
+      .order(:starts_at)
+      .to_a
+
+    graph_assignment = Array.new(staff_members.size) do
+      Array.new(work_requests.size, "-")
+    end
+
+    # スタッフIDと配列上の行番号を対応させる
+    staff_indexes = {}
+
+    staff_members.each_with_index do |staff_member, index|
+      staff_indexes[staff_member.id] = index
+    end
+
+    # 勤務依頼IDと配列上の列番号を対応させる
+    work_request_indexes = {}
+
+    work_requests.each_with_index do |work_request, index|
+      work_request_indexes[work_request.id] = index
+    end
+
+    # 割当状況を表に反映する
+    Assignment.find_each do |assignment|
+      staff_index = staff_indexes[assignment.staff_member_id]
+      work_request_index =
+        work_request_indexes[assignment.work_request_id]
+
+      next if staff_index.nil? || work_request_index.nil?
+
+      graph_assignment[staff_index][work_request_index] =
+        case assignment.status
+        when "draft"
+          "△"
+        when "confirmed"
+          "○"
+        else
+          "-"
+        end
+    end
+
+    rows = []
+
+    # CSVの1行目
+    rows << [
+      "",
+      *work_requests.map do |work_request|
+        I18n.l(work_request.starts_at, format: :short)
+      end
+    ]
+
+    # CSVの2行目以降
+    staff_members.each_with_index do |staff_member, index|
+      rows << [
+        staff_member.name,
+        *graph_assignment[index]
+      ]
+    end
+
+    # 配列をCSV形式の文字列へ変換する
+    csv_data = rows.map do |row|
+      row.map do |value|
+        csv_escape(value)
+      end.join(",")
+    end.join("\r\n")
+
+    send_data(
+      "\uFEFF#{csv_data}",
+      filename: "シフト表_#{Time.current.strftime('%Y%m%d_%H%M')}.csv",
+      type: "text/csv; charset=utf-8",
+      disposition: "attachment"
+    )
+  end
+
+  def csv_escape(value)
+  text = value.to_s
+
+  # Excelで数式として解釈されることを防ぐ
+  if text.match?(/\A[=+@\t\r]/)
+    text = "'#{text}"
+  end
+
+  # 値に含まれるダブルクォートを二重にする
+  text = text.gsub('"', '""')
+
+  # セル全体をダブルクォートで囲む
+  %(#{text})
+  end
+
+
   private
 
   def work_request_params
