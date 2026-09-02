@@ -17,7 +17,7 @@ Rails.application.routes.draw do
 
     get "work_requests/shift", to: "work_requests#shift"
     # --- ADD --- 2026/09/02 sou シフト表のエクスポートを追加  --- end ---
-    get "work_requests/export",to: "work_requests#export", as: :export_work_requests
+    get "work_requests/export", to: "work_requests#export", as: :export_work_requests
     # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
     # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
     # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
