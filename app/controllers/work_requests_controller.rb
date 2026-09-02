@@ -54,9 +54,9 @@ class WorkRequestsController < ApplicationController
       @staff_member.each do |staff|
         if !@work_request.staffing_sufficient?
           logger.debug "ループに入りました"
-          if !@assignment.time_conflict?
+            # if !@assignments.time_conflict?(id: )
             @assignments.assign!(work_request_id: _requests_id, staff_member_id: staff.id)
-          end
+          # end
         end
       end
 
