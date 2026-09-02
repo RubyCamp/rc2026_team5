@@ -1,26 +1,51 @@
 <% content_for :title, "シフト表" %>
+<!-- ---------------デザインの調整 2026/09/02-------------hara -->
+<div class="mb-4">
+  <p class="mb-1 text-primary fw-semibold">
+    シフト調整
+  </p>
 
-<table border="1">
+  <h1 class="display-6 fw-bold">
+    シフト表
+  </h1>
+</div>
+<!-- -----------------デザインの調整   END-------------- -->
+
+<div style="overflow-x:auto;" class="rounded-4 ">
+  <table class="table text-center align-middle mb-0">
+    <thead>
+      <tr>
+        <th></th>
+        <% @work_requests.each do |work_request| %>
+          <th class="border-0 border-bottom border-3 border-primary">
+            <%= l work_request.starts_at, format: :short %>
+          </th>
+        <% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- ---------------unaveirableの人を濃いグレーに -->
+      <% @staff_members.each_with_index do |staff_member, i| %>
+  <% unavailable = staff_member.availabilities.any? { |a| a.status == "unavailable" } %>
   <tr>
-    <th></th>
-    <% @work_requests.each do |work_request| %>
-      <th><%= l work_request.starts_at, format: :short %></th>
-    <% end %>
-  </tr>
-  <% @staff_members.each_with_index do |staff_member, i| %>
+    <th class="text-start <%= unavailable ? 'table-secondary' : 'table-light' %>">
+      <%= staff_member.name %>
+    </th>
 
-    <tr>
-      <th><%= staff_member.name %></th>
-
-      <% @work_requests.each_with_index do |request, j| %>
-        <th>
-          <%= @graph_assignment[i][j] %>
-          <%# if @draft_reley[staff_member.id][requests.id] == "draft" %>
-            <!-- △ -->
-          <%# else %>
-            <!-- ---- -->
-          <%# end %>
-        </th>
+      <!-- -----------------------------END -->
+          <% @work_requests.each_with_index do |request, j| %>
+            <% value = @graph_assignment[i][j] %>
+            <% cell_class = case value
+             when "○" then "table-success"
+             when "△" then "table-warning"
+             when "-" then ""
+             else ""
+             end %>
+          <td class="<%= cell_class %>">
+            <%= value %>
+          </td>
+          <% end %>
+        </tr>
       <% end %>
     </tr>
   <% end %>

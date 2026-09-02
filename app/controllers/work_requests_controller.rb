@@ -70,6 +70,32 @@ class WorkRequestsController < ApplicationController
       logger.debug "終了"
 
     end
+
+    # 追加処理後のDBの人数を読み直し、不足人数を画面へ渡す。
+    @staffing_shortage_count = @work_request.reload.staffing_shortage_count
+
+    # JavaScriptからTurbo-Frameヘッダー付きで呼ばれた場合だけ、
+    # 割当欄のHTML（draft.html.erb）を返す。
+    # ブラウザが通常のリンクとして開いた場合は、
+    # draft.html.erbを単独ページとして表示せず、元のshowページへ戻す。
+    respond_to do |format|
+      # 人数不足時はポップアップを開いたままエラーを表示する。
+      # 成功時はshowページへ戻して、ページの再表示と同時にポップアップを閉じる。
+      format.turbo_stream do
+        if @staffing_shortage_count.positive?
+          render :draft
+        else
+          redirect_to @work_request, status: :see_other
+        end
+      end
+      format.html do
+        if request.headers["Turbo-Frame"].present?
+          render :draft
+        else
+          redirect_to @work_request
+        end
+      end
+    end
   end
 
 
