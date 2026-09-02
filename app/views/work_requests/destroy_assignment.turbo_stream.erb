@@ -1,0 +1,7 @@
+<%= turbo_stream.update "work-request-assignments" do %>
+  <%= render partial: "work_requests/assignments", locals: { assignments: @work_request.assignments.reload } %>
+<% end %>
+
+<%= turbo_stream.update "work-request-assigned-count" do %>
+  <%= @work_request.assignments.reload.size %>
+<% end %>

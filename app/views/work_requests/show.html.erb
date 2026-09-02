@@ -116,6 +116,19 @@
             <span class="badge text-bg-secondary">
               <%= enum_label(assignment, :status) %>
             </span>
+            <% if assignment.draft? %>
+              <%= link_to "解除",
+                    work_request_assignment_path(
+                      work_request_id: @work_request.id,
+                      id: assignment.id
+                    ),
+                    class: "btn btn-sm btn-outline-danger",
+                    data: {
+                      turbo_method: :delete,
+                      turbo_confirm: "#{assignment.staff_member.name}さんの仮割当を解除しますか？"
+                    } %>
+            <% end %>
+
           </li>
         <% end %>
       </ul>

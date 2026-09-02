@@ -99,6 +99,19 @@ class WorkRequestsController < ApplicationController
   end
 
 
+def destroy_assignment
+  @work_request = WorkRequest.find(params[:work_request_id])
+  assignment = @work_request.assignments.find(params[:id])
+
+  Assignment.unassign!(id: assignment.id)
+
+  respond_to do |format|
+    format.turbo_stream
+    format.html do
+      redirect_to @work_request, notice: "#{assignment.staff_member.name}さんの仮割当を解除しました。"
+    end
+  end
+end
   def shift
     @staff_members = StaffMember
       .includes(:skills, :availabilities)

@@ -25,6 +25,9 @@ Rails.application.routes.draw do
     root "work_requests#index"
 
   resources :work_requests, only: %i[index show edit update]
+  delete "work_requests/:work_request_id/assignments/:id",
+    to: "work_requests#destroy_assignment",
+    as: :work_request_assignment
   resources :staff_members, only: [ :index ]
   get "examples/local-data",
     to: "examples#local_data",
