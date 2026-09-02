@@ -10,7 +10,7 @@
   </h1>
 
   <p class="page-lead text-body-secondary">
-    参加者のプロフィールを一覧で表示しています。
+    好きなことやひとことから、メンバーについて知ってみましょう。
   </p>
 </div>
 
@@ -20,6 +20,11 @@
     <%= @profiles.size %>件
   </span>
 </div>
+
+<%= form_with url: tutorial_path, method: :get do |form| %>
+  <%= form.search_field :q, value: params[:q] %>
+  <%= form.submit "Search" %>
+<% end %>
 
 <div class="row g-4">
   <% @profiles.each do |profile| %>
@@ -60,6 +65,11 @@
             <div>
               <dt>ひとこと</dt>
               <dd><%= profile.message %></dd>
+            </div>
+
+            <div>
+              <dt>好きなもの</dt>
+              <dd><%= profile.favorite %></dd>
             </div>
           </dl>
         </div>
