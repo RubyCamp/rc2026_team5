@@ -108,74 +108,77 @@ class WorkRequestsController < ApplicationController
     @shift_rows = build_shift_rows(@staff_members, @work_requests, @time_slots)
   end
 
-  def export
-    staff_members = StaffMember
-      .includes(:skills, :availabilities)
-      .order(:id)
-      .to_a
+def export
+  # shiftアクションと同じデータを準備する
+  shift
 
-    work_requests = WorkRequest
-      .includes(:business, :required_skill, assignments: :staff_member)
-      .order(:starts_at)
-      .to_a
+  rows = []
 
-    graph_assignment = Array.new(staff_members.size) do
-      Array.new(work_requests.size, "-")
+  # 1行目: 日付
+  date_row = [""]
+
+  @time_slot_groups.each do |date, slots|
+    date_row << "#{date.month}/#{date.day}"
+
+    # HTMLのcolspan相当として、残りのセルは空欄にする
+    (slots.size - 1).times do
+      date_row << ""
     end
-
-    staff_indexes = {}
-    staff_members.each_with_index do |staff_member, index|
-      staff_indexes[staff_member.id] = index
-    end
-
-    work_request_indexes = {}
-    work_requests.each_with_index do |work_request, index|
-      work_request_indexes[work_request.id] = index
-    end
-
-    Assignment.find_each do |assignment|
-      staff_index = staff_indexes[assignment.staff_member_id]
-      work_request_index = work_request_indexes[assignment.work_request_id]
-
-      next if staff_index.nil? || work_request_index.nil?
-
-      graph_assignment[staff_index][work_request_index] =
-        case assignment.status
-        when "draft" then "△"
-        when "confirmed" then "○"
-        else "-"
-        end
-    end
-
-    rows = []
-    rows << [ "", *work_requests.map { |wr| I18n.l(wr.starts_at, format: :short) } ]
-
-    staff_members.each_with_index do |staff_member, index|
-      rows << [ staff_member.name, *graph_assignment[index] ]
-    end
-
-    csv_data = rows.map { |row| row.map { |v| csv_escape(v) }.join(",") }.join("\r\n")
-
-    requested_filename = params[:filename].to_s.strip
-
-    if requested_filename.empty?
-      requested_filename =
-        "シフト表_#{Time.current.strftime('%Y%m%d_%H%M')}"
-    end
-
-    # ファイル名として使用できない文字を「_」へ置換
-    safe_filename = requested_filename.gsub(/[\\\/:*?"<>|]/, "_")
-
-    # 利用者が.csvまで入力しても二重に付かないようにする
-    safe_filename = safe_filename.delete_suffix(".csv")
-
-    send_data(
-      "\uFEFF#{csv_data}",
-      filename: "#{safe_filename}.csv",
-      type: "text/csv; charset=utf-8",
-      disposition: "attachment"
-    )
   end
+
+  rows << date_row
+
+  # 2行目: 時刻
+  rows << [
+    "",
+    *@time_slots.map { |slot| slot.strftime("%H:%M~") }
+  ]
+
+  # 3行目以降: スタッフ名と各時間帯の割当状況
+  @shift_rows.each do |row|
+    staff_name = row[:show_name] ? row[:staff].name : ""
+
+    rows << [
+      staff_name,
+      *row[:cells].map { |cell| cell[:label] }
+    ]
+  end
+
+  # 配列からCSV文字列を作成
+  csv_data = rows.map do |row|
+    row.map { |value| csv_escape(value) }.join(",")
+  end.join("\r\n")
+
+  # モーダルで入力されたファイル名を取得
+  requested_filename = params[:filename].to_s.strip
+
+  if requested_filename.empty?
+    requested_filename =
+      "シフト表_#{Time.current.strftime('%Y%m%d_%H%M')}"
+  end
+
+  # ファイル名に使用できない文字を置換
+  safe_filename =
+    requested_filename.gsub(/[\\\/:*?"<>|]/, "_")
+
+  # 入力された末尾の.csvを削除
+  safe_filename =
+    safe_filename.sub(/(?:\.csv)+\z/i, "")
+
+  # ファイル名が.csvだけだった場合などへの対策
+  if safe_filename.empty?
+    safe_filename =
+      "シフト表_#{Time.current.strftime('%Y%m%d_%H%M')}"
+  end
+
+  send_data(
+    "\uFEFF#{csv_data}",
+    filename: "#{safe_filename}.csv",
+    type: "text/csv; charset=utf-8",
+    disposition: "attachment"
+  )
+end
+
 
   def csv_escape(value)
     text = value.to_s
