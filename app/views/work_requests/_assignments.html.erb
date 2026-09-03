@@ -41,13 +41,15 @@
                               data-bs-dismiss="modal">
                         キャンセル
                       </button>
-                      <%= link_to "解除する",
+                      <%= button_to "解除する",
                             work_request_assignment_path(
                               work_request_id: assignment.work_request_id,
                               id: assignment.id
                             ),
+                            method: :delete,
                             class: "btn btn-danger",
-                            data: { turbo_method: :delete } %>
+                            form: { data: { turbo: false } },
+                            data: { bs_dismiss: "modal" } %>
                     </div>
                   </div>
                 </div>
