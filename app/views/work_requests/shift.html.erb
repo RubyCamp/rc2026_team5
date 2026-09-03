@@ -20,7 +20,7 @@
       <tr>
         <th class="shift-table__staff-header"></th>
         <% @time_slot_groups.each do |date, slots| %>
-          <th class="shift-table__date-header" colspan="<%= slots.size %>"><%= date.strftime("%-m/%-d") %></th>
+          <th class="shift-table__date-header" colspan="<%= slots.size %>"><%= "#{date.month}/#{date.day}" %></th>
         <% end %>
       </tr>
       <tr>
