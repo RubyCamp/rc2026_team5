@@ -24,17 +24,13 @@
       </tr>
     </thead>
     <tbody>
-      <!-- -----------------------------------------------------unaveirableの人を濃いグレーに -->
+      <!-- -----------------------------------------------------辞めた人を濃いグレーに -->
 <% @staff_members.each_with_index do |staff_member, i| %>
   <% inactive = staff_member.employment_status == "inactive" %>
   <tr>
     <th class="text-start <%= inactive ? 'table-secondary' : 'table-light' %>">
       <%= staff_member.name %>
     </th>
-
-    <% @work_requests.each_with_index do |request, j| %>
-      ...
-    <% end %>
       <!-- ------------------------------------------------------------------------END -->
           <% @work_requests.each_with_index do |request, j| %>
             <% value = @graph_assignment[i][j] %>

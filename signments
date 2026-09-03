@@ -1,0 +1,15 @@
+                List of relations
+ Schema |         Name         | Type  |  Owner   
+--------+----------------------+-------+----------
+ public | ar_internal_metadata | table | postgres
+ public | assignments          | table | postgres
+ public | availabilities       | table | postgres
+ public | businesses           | table | postgres
+ public | change_events        | table | postgres
+ public | schema_migrations    | table | postgres
+ public | skills               | table | postgres
+ public | staff_members        | table | postgres
+ public | staff_skills         | table | postgres
+ public | work_requests        | table | postgres
+(10 rows)
+
