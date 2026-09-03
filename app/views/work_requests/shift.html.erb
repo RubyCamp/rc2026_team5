@@ -51,8 +51,66 @@
 </div>
 
     <!-- # --- ADD --- 2026/09/02 sou シフト表のエクスポートを追加  --- end --- -->
+<button type="button"
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#exportModal">
+  エクスポート
+</button>
 
-<%= button_to "エクスポート",
-              export_work_requests_path,
-              method: :get,
-              form: { data: { turbo: false } } %>
+<div class="modal fade"
+     id="exportModal"
+     tabindex="-1"
+     aria-labelledby="exportModalLabel"
+     aria-hidden="true">
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="exportModalLabel">
+          CSVエクスポート
+        </h5>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="閉じる">
+        </button>
+      </div>
+
+      <%= form_with url: export_work_requests_path,
+                    method: :get,
+                    data: { turbo: false } do |form| %>
+
+        <div class="modal-body">
+          <%= form.label :filename,
+                         "ファイル名",
+                         class: "form-label" %>
+
+          <div class="input-group">
+            <%= form.text_field :filename,
+                                value: "シフト表_#{Time.current.strftime('%Y%m%d_%H%M')}",
+                                class: "form-control",
+                                required: true %>
+
+            <span class="input-group-text">.csv</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal">
+            キャンセル
+          </button>
+
+          <%= form.submit "保存",
+                          class: "btn btn-primary" %>
+        </div>
+
+      <% end %>
+
+    </div>
+  </div>
+</div>
