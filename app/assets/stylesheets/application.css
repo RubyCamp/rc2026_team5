@@ -46,3 +46,51 @@ body {
   margin: 0;
   text-align: right;
 }
+
+.shift-table-wrapper {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.shift-table {
+  min-width: max-content;
+}
+
+.shift-table th,
+.shift-table td {
+  min-width: 7rem;
+  padding: 0.75rem;
+}
+
+.shift-table thead th {
+  position: sticky;
+  z-index: 2;
+  background-color: var(--bs-light);
+}
+
+.shift-table thead tr:first-child th {
+  top: 0;
+}
+
+.shift-table thead tr:nth-child(2) th {
+  top: 2.75rem;
+}
+
+.shift-table__staff-header {
+  position: sticky !important;
+  left: 0;
+  z-index: 3 !important;
+  min-width: 10rem !important;
+  background-color: var(--bs-light) !important;
+}
+
+.shift-table__date-header {
+  color: var(--bs-primary-text-emphasis);
+  background-color: var(--bs-primary-bg-subtle) !important;
+}
+
+.shift-cell {
+  min-width: 9rem !important;
+  height: 4rem;
+  font-size: 0.875rem;
+}

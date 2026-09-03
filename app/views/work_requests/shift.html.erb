@@ -5,63 +5,44 @@
     シフト調整
   </p>
 
-  <h1 class="display-6 fw-bold">
-    シフト表
-    <!-- # --- ADD --- 2026/09/02 sou シフト表のエクスポートを追加  -- -->
-    <div class="d-flex justify-content-end">
-      <button type="button"
-              class="btn btn-primary justify-content-end"
-              data-bs-toggle="modal"
-              data-bs-target="#exportModal">
-        エクスポート
-      </button>
-    </div>
-    <!--end-->
-  </h1>
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <h1 class="display-6 fw-bold mb-0">シフト表</h1>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
+      エクスポート
+    </button>
+  </div>
+
+
 </div>
-<!-- -----------------デザインの調整   END-------------- -->
-
-
-<div style="overflow-x:auto;" class="rounded-4 ">
-  <table class="table text-center align-middle mb-0">
+<div class="shift-table-wrapper table-responsive rounded-4 border">
+  <table class="shift-table table table-bordered text-center align-middle mb-0">
     <thead>
       <tr>
-        <th></th>
-        <% @work_requests.each do |work_request| %>
-          <th class="border-0 border-bottom border-3 border-primary">
-            <%= l work_request.starts_at, format: :short %>
-          </th>
+        <th class="shift-table__staff-header"></th>
+        <% @time_slot_groups.each do |date, slots| %>
+          <th class="shift-table__date-header" colspan="<%= slots.size %>"><%= "#{date.month}/#{date.day}" %></th>
+        <% end %>
+      </tr>
+      <tr>
+        <th class="shift-table__staff-header"></th>
+        <% @time_slots.each do |slot| %>
+          <th class="shift-table__time-header"><%= slot.strftime("%H:%M~") %></th>
         <% end %>
       </tr>
     </thead>
     <tbody>
-      <!-- -----------------------------------------------------辞めた人を濃いグレーに -->
-<% @staff_members.each_with_index do |staff_member, i| %>
-  <% inactive = staff_member.employment_status == "inactive" %>
-  <tr>
-    <th class="text-start <%= inactive ? 'table-secondary' : 'table-light' %>">
-      <%= staff_member.name %>
-    </th>
-      <!-- ------------------------------------------------------------------------END -->
-          <% @work_requests.each_with_index do |request, j| %>
-            <% value = @graph_assignment[i][j] %>
-            <% cell_class = case value
-             when "○" then "table-success"
-             when "△" then "table-warning"
-             when "-" then ""
-             else ""
-             end %>
-          <td class="<%= cell_class %>">
-            <%= value %>
-          </td>
+      <% @shift_rows.each do |row| %>
+        <tr>
+          <th class="shift-table__staff-header"><%= row[:staff].name if row[:show_name] %></th>
+          <% row[:cells].each do |cell| %>
+            <% cell_class = cell[:state] == :confirmed ? "table-success" : cell[:state] == :draft ? "table-warning" : "" %>
+            <td class="shift-cell shift-cell--<%= cell[:state] %> <%= cell_class %>"><%= cell[:label] %></td>
           <% end %>
         </tr>
       <% end %>
     </tbody>
   </table>
 </div>
-
-
 <div class="modal fade"
      id="exportModal"
      tabindex="-1"
