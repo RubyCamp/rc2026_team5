@@ -1,22 +1,120 @@
 <% content_for :title, "シフト表" %>
+<!-- ---------------デザインの調整 2026/09/02-------------hara -->
+<div class="mb-4">
+  <p class="mb-1 text-primary fw-semibold">
+    シフト調整
+  </p>
 
-<table class="shift-table" border="1">
+  <h1 class="display-6 fw-bold">
+    シフト表
+    <!-- # --- ADD --- 2026/09/02 sou シフト表のエクスポートを追加  -- -->
+    <div class="d-flex justify-content-end">
+      <button type="button"
+              class="btn btn-primary justify-content-end"
+              data-bs-toggle="modal"
+              data-bs-target="#exportModal">
+        エクスポート
+      </button>
+    </div>
+    <!--end-->
+  </h1>
+</div>
+<!-- -----------------デザインの調整   END-------------- -->
+
+
+<div style="overflow-x:auto;" class="rounded-4 ">
+  <table class="table text-center align-middle mb-0">
+    <thead>
+      <tr>
+        <th></th>
+        <% @work_requests.each do |work_request| %>
+          <th class="border-0 border-bottom border-3 border-primary">
+            <%= l work_request.starts_at, format: :short %>
+          </th>
+        <% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- -----------------------------------------------------辞めた人を濃いグレーに -->
+<% @staff_members.each_with_index do |staff_member, i| %>
+  <% inactive = staff_member.employment_status == "inactive" %>
   <tr>
-    <th></th>
-    <th colspan="<%= @time_slots.size %>"><%= @date&.strftime("%-m/%-d") %></th>
-  </tr>
-  <tr>
-    <th></th>
-    <% @time_slots.each do |slot| %>
-      <th><%= slot.strftime("%H:%M~") %></th>
-    <% end %>
-  </tr>
-  <% @shift_rows.each do |row| %>
-    <tr>
-      <th><%= row[:staff].name if row[:show_name] %></th>
-      <% row[:cells].each do |cell| %>
-        <td class="shift-cell shift-cell--<%= cell[:state] %>"><%= cell[:label] %></td>
+    <th class="text-start <%= inactive ? 'table-secondary' : 'table-light' %>">
+      <%= staff_member.name %>
+    </th>
+      <!-- ------------------------------------------------------------------------END -->
+          <% @work_requests.each_with_index do |request, j| %>
+            <% value = @graph_assignment[i][j] %>
+            <% cell_class = case value
+             when "○" then "table-success"
+             when "△" then "table-warning"
+             when "-" then ""
+             else ""
+             end %>
+          <td class="<%= cell_class %>">
+            <%= value %>
+          </td>
+          <% end %>
+        </tr>
       <% end %>
-    </tr>
-  <% end %>
-</table>
+    </tbody>
+  </table>
+</div>
+
+
+<div class="modal fade"
+     id="exportModal"
+     tabindex="-1"
+     aria-labelledby="exportModalLabel"
+     aria-hidden="true">
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="exportModalLabel">
+          CSVエクスポート
+        </h5>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="閉じる">
+        </button>
+      </div>
+
+      <%= form_with url: export_work_requests_path,
+                    method: :get,
+                    data: { turbo: false } do |form| %>
+
+        <div class="modal-body">
+          <%= form.label :filename,
+                         "ファイル名",
+                         class: "form-label" %>
+
+          <div class="input-group">
+            <%= form.text_field :filename,
+                                value: "シフト表_#{Time.current.strftime('%Y%m%d_%H%M')}",
+                                class: "form-control",
+                                required: true %>
+
+            <span class="input-group-text">.csv</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal">
+            キャンセル
+          </button>
+
+          <%= form.submit "保存",
+                          class: "btn btn-primary" %>
+        </div>
+
+      <% end %>
+
+    </div>
+  </div>
+</div>

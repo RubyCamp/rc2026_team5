@@ -45,15 +45,22 @@
               <div>
                 <dt>勤務予定</dt>
                 <dd>
-                  <%= staff_member.availabilities
-                        .map do |availability|
-                          enum_label(
-                            availability,
-                            :status
-                          )
-                        end
-                        .join("、")
-                        .presence || "未登録" %>
+                  <% if staff_member.availabilities.any? %>
+                    <ul class="list-unstyled mb-0">
+                      <% staff_member.availabilities.each do |availability| %>
+                        <li class="mb-1">
+                          <span class="badge text-bg-secondary">
+                            <%= enum_label(availability, :status) %>
+                          </span>
+                          <%= l availability.starts_at, format: :short %>
+                          〜
+                          <%= l availability.ends_at, format: :short %>
+                        </li>
+                      <% end %>
+                    </ul>
+                  <% else %>
+                    未登録
+                  <% end %>
                 </dd>
               </div>
             </dl>

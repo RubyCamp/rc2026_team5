@@ -24,7 +24,7 @@
       <%= @work_request.business.name %>
     </p>
 
-    <h1 class="display-6 fw-git bold">
+    <h1 class="display-6 fw-bold">
       <%= @work_request.title %>
     </h1>
 
@@ -40,6 +40,23 @@
   </span>
 </div>
 
+<!-- ---------------ボタンの場所、デザイン変更2026/09/02 -->
+<div class="gap-3 mb-4 text-end">
+<button type="button"
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#draftAssignmentModal">
+  仮割当
+</button>
+<button type="button"
+        class="btn btn-danger"
+        data-bs-toggle="modal"
+        data-bs-target="#unassignAssignmentModal">
+  仮割当全解除
+</button>
+</div>
+
+<!--  ---------------ボタンの場所、デザイン変更 END -->
 <section class="card shadow-sm mb-4">
   <div class="card-body">
     <h2 class="h4 card-title">
@@ -90,51 +107,18 @@
 </section>
 
 <turbo-frame id="work-request-assignments">
-<section class="card shadow-sm">
-  <div class="card-body">
-    <h2 class="h4 card-title">
-      現在の割当
-    </h2>
-
-    <% if @work_request.assignments.any? %>
-      <ul class="list-group list-group-flush">
-        <% @work_request.assignments.each do |assignment| %>
-          <li
-            class="
-              list-group-item
-              px-0
-              d-flex
-              justify-content-between
-              align-items-center
-              gap-3
-            "
-          >
-            <strong>
-              <%= assignment.staff_member.name %>
-            </strong>
-
-            <span class="badge text-bg-secondary">
-              <%= enum_label(assignment, :status) %>
-            </span>
-          </li>
-        <% end %>
-      </ul>
-    <% else %>
-      <p class="mb-0 text-body-secondary">
-        まだスタッフは割り当てられていません。
-      </p>
-
-    <% end %>
-
-
-  </div>
-</section>
+  <%= render partial: "work_requests/assignments",
+        locals: { assignments: @work_request.assignments } %>
 </turbo-frame>
 
+
 <!-- 仮割当の結果はshowページに表示するため、ここでは確認だけ行う。 -->
-<button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#draftAssignmentModal">
-  仮割当
-</button>
+<!-- <button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#draftAssignmentModal"> -->
+  <!-- 仮割当 -->
+<!-- </button> -->
+<!-- <button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#draftAssignmentModal"> -->
+  <!-- 割当解除 -->
+<!-- </button> -->
 
 <!-- ポップアップ部分 -->
 <div class="modal fade" id="draftAssignmentModal" tabindex="-1" aria-labelledby="draftAssignmentModalLabel" aria-hidden="true">
@@ -151,6 +135,25 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
         <!-- GETで既存の仮割当処理を呼び、割当欄だけを更新する。 -->
         <%= link_to "実行する", draft_path(id: @work_request.id), class: "btn btn-primary", data: { turbo_stream: true } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="unassignAssignmentModal" tabindex="-1" aria-labelledby="unassignAssignmentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="unassignAssignmentModalLabel">仮割当解除の確認</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+      </div>
+      <div class="modal-body">
+        仮割当を全解除しますか？
+      </div>
+      <div class="modal-footer" id="unassign-assignment-modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+        <!-- GETで既存の仮割当処理を呼び、割当欄だけを更新する。 -->
+        <%= link_to "全解除する", unassign_all_path(id: @work_request.id), class: "btn btn-primary", data: { turbo_stream: true } %>
       </div>
     </div>
   </div>

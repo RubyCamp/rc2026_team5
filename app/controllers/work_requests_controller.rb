@@ -33,54 +33,25 @@ class WorkRequestsController < ApplicationController
 
   # 仮割当取得用
   def draft
-    logger.debug "画面が遷移しました"
+    @work_request = WorkRequest.find(params[:id])
 
-    _requests_id = params[:id]   # 対象の勤務依頼IDを取得
+    @staff_members = StaffMember
+      .available_for(work_request_id: @work_request.id)
+      .limit(@work_request.staffing_shortage_count)
 
-    @assignments = Assignment.all
-    @work_request = WorkRequest.find(_requests_id)  # 対象の勤務依頼を取得
-    # @staff_member = StaffMember.all
-    @staff_member = StaffMember.available_for(work_request_id: _requests_id)   # @StaffMemberに勤務可能なスタッフを取得
-    _suffer = @work_request.staffing_shortage_count()
+    @staff_members.each do |staff|
+      break if @work_request.reload.staffing_sufficient?
 
-    logger.debug "最後のDBのID"
-
-    # 10.times do |i|
-    #   @assignments.unassign!(id:i+28)
-    # end
-
-    if !@work_request.staffing_sufficient?
-
-      @staff_member.each do |staff|
-        if !@work_request.staffing_sufficient?
-          logger.debug "ループに入りました"
-            # if !@assignments.time_conflict?(id: )
-            @assignments.assign!(work_request_id: _requests_id, staff_member_id: staff.id)
-          # end
-        end
-      end
-
-      logger.debug "ifに入りましt"
-      logger.debug "#{_suffer}人不足しています"
-
-      # _suffer.times do |i|
-      #   @assignments.assign!(work_request_id: _requests_id, staff_member_id: )
-      # end
-
-      logger.debug "終了"
-
+      Assignment.assign!(
+        work_request_id: @work_request.id,
+        staff_member_id: staff.id
+      )
     end
 
     # 追加処理後のDBの人数を読み直し、不足人数を画面へ渡す。
     @staffing_shortage_count = @work_request.reload.staffing_shortage_count
 
-    # JavaScriptからTurbo-Frameヘッダー付きで呼ばれた場合だけ、
-    # 割当欄のHTML（draft.html.erb）を返す。
-    # ブラウザが通常のリンクとして開いた場合は、
-    # draft.html.erbを単独ページとして表示せず、元のshowページへ戻す。
     respond_to do |format|
-      # 人数不足時はポップアップを開いたままエラーを表示する。
-      # 成功時はshowページへ戻して、ページの再表示と同時にポップアップを閉じる。
       format.turbo_stream do
         if @staffing_shortage_count.positive?
           render :draft
@@ -88,6 +59,7 @@ class WorkRequestsController < ApplicationController
           redirect_to @work_request, status: :see_other
         end
       end
+
       format.html do
         if request.headers["Turbo-Frame"].present?
           render :draft
@@ -98,10 +70,41 @@ class WorkRequestsController < ApplicationController
     end
   end
 
+  # 仮割当全解除
+  def unassign_all
+    @work_request = WorkRequest.find(params[:id])
+
+    @work_request.assignments.each do |assignment|
+      Assignment.unassign!(id: assignment.id)
+    end
+
+    redirect_to work_request_path(@work_request)
+  end
+
+  def destroy_assignment
+    @work_request = WorkRequest.find(params[:work_request_id])
+    assignment = @work_request.assignments.find(params[:id])
+
+    Assignment.unassign!(id: assignment.id)
+
+    respond_to do |format|
+      format.turbo_stream
+      format.html do
+        redirect_to @work_request, notice: "#{assignment.staff_member.name}さんの仮割当を解除しました。"
+      end
+    end
+  end
 
   def shift
-    @work_requests = WorkRequest.for_list
-    @staff_members = StaffMember.order(:id)
+    @staff_members = StaffMember
+      .includes(:skills, :availabilities)
+      .order(:id)
+
+    @work_requests = WorkRequest
+      .includes(:business, :required_skill, assignments: :staff_member)
+      .order(:starts_at)
+
+    @assignments = Assignment.all
 
     @date, @time_slots = build_time_slots(@work_requests)
     @shift_rows = build_shift_rows(@staff_members, @work_requests, @time_slots)
@@ -221,6 +224,84 @@ class WorkRequestsController < ApplicationController
 
     tracks.presence || [ [] ]
   end
+
+  def export
+    staff_members = StaffMember
+      .includes(:skills, :availabilities)
+      .order(:id)
+      .to_a
+
+    work_requests = WorkRequest
+      .includes(:business, :required_skill, assignments: :staff_member)
+      .order(:starts_at)
+      .to_a
+
+    graph_assignment = Array.new(staff_members.size) do
+      Array.new(work_requests.size, "-")
+    end
+
+    staff_indexes = {}
+    staff_members.each_with_index do |staff_member, index|
+      staff_indexes[staff_member.id] = index
+    end
+
+    work_request_indexes = {}
+    work_requests.each_with_index do |work_request, index|
+      work_request_indexes[work_request.id] = index
+    end
+
+    Assignment.find_each do |assignment|
+      staff_index = staff_indexes[assignment.staff_member_id]
+      work_request_index = work_request_indexes[assignment.work_request_id]
+
+      next if staff_index.nil? || work_request_index.nil?
+
+      graph_assignment[staff_index][work_request_index] =
+        case assignment.status
+        when "draft" then "△"
+        when "confirmed" then "○"
+        else "-"
+        end
+    end
+
+    rows = []
+    rows << [ "", *work_requests.map { |wr| I18n.l(wr.starts_at, format: :short) } ]
+
+    staff_members.each_with_index do |staff_member, index|
+      rows << [ staff_member.name, *graph_assignment[index] ]
+    end
+
+    csv_data = rows.map { |row| row.map { |v| csv_escape(v) }.join(",") }.join("\r\n")
+
+    requested_filename = params[:filename].to_s.strip
+
+    if requested_filename.empty?
+      requested_filename =
+        "シフト表_#{Time.current.strftime('%Y%m%d_%H%M')}"
+    end
+
+    # ファイル名として使用できない文字を「_」へ置換
+    safe_filename = requested_filename.gsub(/[\\\/:*?"<>|]/, "_")
+
+    # 利用者が.csvまで入力しても二重に付かないようにする
+    safe_filename = safe_filename.delete_suffix(".csv")
+
+    send_data(
+      "\uFEFF#{csv_data}",
+      filename: "#{safe_filename}.csv",
+      type: "text/csv; charset=utf-8",
+      disposition: "attachment"
+    )
+  end
+
+  def csv_escape(value)
+    text = value.to_s
+    text = "'#{text}" if text.match?(/\A[=+@\t\r]/)
+    text = text.gsub('"', '""')
+    %(#{text})
+  end
+
+  private
 
   def overlap?(wr1, wr2)
     wr1.starts_at < wr2.ends_at && wr2.starts_at < wr1.ends_at
