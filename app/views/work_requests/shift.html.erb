@@ -7,9 +7,20 @@
 
   <h1 class="display-6 fw-bold">
     シフト表
+    <!-- # --- ADD --- 2026/09/02 sou シフト表のエクスポートを追加  -- -->
+    <div class="d-flex justify-content-end">
+      <button type="button"
+              class="btn btn-primary justify-content-end"
+              data-bs-toggle="modal"
+              data-bs-target="#exportModal">
+        エクスポート
+      </button>
+    </div>
+    <!--end-->
   </h1>
 </div>
 <!-- -----------------デザインの調整   END-------------- -->
+
 
 <div style="overflow-x:auto;" class="rounded-4 ">
   <table class="table text-center align-middle mb-0">
@@ -51,13 +62,6 @@
   </table>
 </div>
 
-    <!-- # --- ADD --- 2026/09/02 sou シフト表のエクスポートを追加  --- end --- -->
-<button type="button"
-        class="btn btn-primary"
-        data-bs-toggle="modal"
-        data-bs-target="#exportModal">
-  エクスポート
-</button>
 
 <div class="modal fade"
      id="exportModal"
