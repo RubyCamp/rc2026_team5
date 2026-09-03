@@ -90,7 +90,7 @@ class WorkRequestsController < ApplicationController
     respond_to do |format|
       format.turbo_stream
       format.html do
-        redirect_to @work_request, notice: "#{assignment.staff_member.name}さんの仮割当を解除しました。"
+        redirect_to @work_request
       end
     end
   end
