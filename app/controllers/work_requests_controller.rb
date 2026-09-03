@@ -100,52 +100,135 @@ class WorkRequestsController < ApplicationController
 
 
   def shift
-    @staff_members = StaffMember
-      .includes(:skills, :availabilities)
-      .order(:id)
-    @work_requests = WorkRequest
-      .includes(:business, :required_skill, assignments: :staff_member)
-      .order(:starts_at)
-    @assignments = Assignment.all
-    # @member = []
-    # @work = []
+    @work_requests = WorkRequest.for_list
+    @staff_members = StaffMember.order(:id)
 
-    @graph_assignment = Array.new(@staff_members.size) { Array.new @work_requests.size, "-" }
-
-    # @staff_1 = [ [] ]
-    # @staff_2 = [ [] ]
-
-    # @staff_members.size.times do ||
-    #   @work_requests.size.times do ||
-    #     @staff_1 << "-"
-    #   end
-    # end
-
-    # ダミーデータ
-    # @graph_assignment = [
-    #   [ "-", "-", "-", "-", "-", "-" ],
-    #   [ "-", "-", "-", "-", "-", "-" ],
-    #   [ "-", "-", "-", "-", "-", "-" ],
-    #   [ "-", "-", "-", "-", "-", "-" ],
-    #   [ "-", "-", "-", "-", "-", "-" ]
-    # ]
-
-    @assignments.each do |data|
-      logger.debug "仮割当情報を取得しました"
-      logger.debug "#{data.work_request_id}"
-
-      if data.status == "draft"
-        @graph_assignment[data.staff_member_id - 1][data.work_request_id - 1] = "△"
-      elsif data.status == "confirmed"
-        @graph_assignment[data.staff_member_id - 1][data.work_request_id - 1] = "○"
-      else
-        # @graph_assignment[1][1] = "-"
-      end
-    end
+    @date, @time_slots = build_time_slots(@work_requests)
+    @shift_rows = build_shift_rows(@staff_members, @work_requests, @time_slots)
   end
+  # def shift
+  #   @staff_members = StaffMember
+  #     .includes(:skills, :availabilities)
+  #     .order(:id)
+  #   @work_requests = WorkRequest
+  #     .includes(:business, :required_skill, assignments: :staff_member)
+  #     .order(:starts_at)
+  #   @assignments = Assignment.all
+  #   # @member = []
+  #   # @work = []
+
+  #   @graph_assignment = Array.new(@staff_members.size) { Array.new @work_requests.size, "-" }
+
+  #   # @staff_1 = [ [] ]
+  #   # @staff_2 = [ [] ]
+
+  #   # @staff_members.size.times do ||
+  #   #   @work_requests.size.times do ||
+  #   #     @staff_1 << "-"
+  #   #   end
+  #   # end
+
+  #   # ダミーデータ
+  #   # @graph_assignment = [
+  #   #   [ "-", "-", "-", "-", "-", "-" ],
+  #   #   [ "-", "-", "-", "-", "-", "-" ],
+  #   #   [ "-", "-", "-", "-", "-", "-" ],
+  #   #   [ "-", "-", "-", "-", "-", "-" ],
+  #   #   [ "-", "-", "-", "-", "-", "-" ]
+  #   # ]
+
+  #   @assignments.each do |data|
+  #     logger.debug "仮割当情報を取得しました"
+  #     logger.debug "#{data.work_request_id}"
+
+  #     if data.status == "draft"
+  #       @graph_assignment[data.staff_member_id - 1][data.work_request_id - 1] = "△"
+  #     elsif data.status == "confirmed"
+  #       @graph_assignment[data.staff_member_id - 1][data.work_request_id - 1] = "○"
+  #     else
+  #       # @graph_assignment[1][1] = "-"
+  #     end
+  #   end
+  # end
+
   private
 
   def work_request_params
     params.expect(work_request: [ :notes ])
   end
+
+  def build_time_slots(work_requests)
+    return [ nil, [] ] if work_requests.empty?
+
+    date = work_requests.map { |wr| wr.starts_at.to_date }.min
+    start_hour = work_requests.map { |wr| wr.starts_at.hour }.min
+    end_hour = work_requests.map { |wr| wr.ends_at.hour }.max
+    slots = (start_hour...end_hour).map { |h| Time.zone.local(date.year, date.month, date.day, h) }
+    [ date, slots ]
+  end
+
+  def build_shift_rows(staff_members, work_requests, time_slots)
+    staff_members.flat_map do |staff|
+      assignments = work_requests.flat_map do |wr|
+        wr.assignments
+          .select { |a| a.staff_member_id == staff.id }
+          .map { |a| [ wr, a ] }
+      end.sort_by { |wr, _a| wr.starts_at }
+
+      tracks = split_into_tracks(assignments)
+
+      tracks.each_with_index.map do |track, index|
+        cells = time_slots.map do |slot|
+          hour = slot.hour
+          occupying = track.select { |wr, _a| wr.starts_at.hour <= hour && hour < wr.ends_at.hour }
+
+          if occupying.empty?
+            { state: :empty, label: nil }
+          else
+            wr, a = occupying.first
+            first_hour = wr.starts_at.hour == hour
+            last_hour = wr.ends_at.hour - 1 == hour
+            mark = a.status == "confirmed" ? "○" : "△"
+            label =
+              if first_hour && last_hour
+                "#{wr.business.name} [#{wr.title}] #{mark}"
+              elsif first_hour
+                "#{wr.business.name} [#{wr.title}]"
+              elsif last_hour
+                mark
+              end
+            { state: a.status.to_sym, label: label }
+          end
+        end
+
+        { staff: staff, cells: cells, show_name: index.zero? }
+      end
+    end
+  end
+
+  # 時間が重ならない依頼同士を同じ「段」にまとめる
+  def split_into_tracks(assignments)
+    tracks = []
+
+    assignments.each do |wr, a|
+      track = tracks.find { |t| t.none? { |twr, _ta| overlap?(twr, wr) } }
+      if track
+        track << [ wr, a ]
+      else
+        tracks << [ [ wr, a ] ]
+      end
+    end
+
+    tracks.presence || [ [] ]
+  end
+
+  def overlap?(wr1, wr2)
+    wr1.starts_at < wr2.ends_at && wr2.starts_at < wr1.ends_at
+  end
 end
+#   private
+
+#   def work_request_params
+#     params.expect(work_request: [ :notes ])
+#   end
+# end

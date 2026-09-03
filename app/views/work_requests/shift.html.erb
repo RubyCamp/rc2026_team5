@@ -1,26 +1,21 @@
 <% content_for :title, "シフト表" %>
 
-<table border="1">
+<table class="shift-table" border="1">
   <tr>
     <th></th>
-    <% @work_requests.each do |work_request| %>
-      <th><%= l work_request.starts_at, format: :short %></th>
+    <th colspan="<%= @time_slots.size %>"><%= @date&.strftime("%-m/%-d") %></th>
+  </tr>
+  <tr>
+    <th></th>
+    <% @time_slots.each do |slot| %>
+      <th><%= slot.strftime("%H:%M~") %></th>
     <% end %>
   </tr>
-  <% @staff_members.each_with_index do |staff_member, i| %>
-
+  <% @shift_rows.each do |row| %>
     <tr>
-      <th><%= staff_member.name %></th>
-
-      <% @work_requests.each_with_index do |request, j| %>
-        <th>
-          <%= @graph_assignment[i][j] %>
-          <%# if @draft_reley[staff_member.id][requests.id] == "draft" %>
-            <!-- △ -->
-          <%# else %>
-            <!-- ---- -->
-          <%# end %>
-        </th>
+      <th><%= row[:staff].name if row[:show_name] %></th>
+      <% row[:cells].each do |cell| %>
+        <td class="shift-cell shift-cell--<%= cell[:state] %>"><%= cell[:label] %></td>
       <% end %>
     </tr>
   <% end %>
