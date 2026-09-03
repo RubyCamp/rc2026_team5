@@ -197,17 +197,30 @@ class WorkRequestsController < ApplicationController
 
     # 配列をCSV形式の文字列へ変換する
     csv_data = rows.map do |row|
-      row.map do |value|
-        csv_escape(value)
-      end.join(",")
-    end.join("\r\n")
+  row.map do |value|
+    csv_escape(value)
+  end.join(",")
+end.join("\r\n")
 
-    send_data(
-      "\uFEFF#{csv_data}",
-      filename: "シフト表_#{Time.current.strftime('%Y%m%d_%H%M')}.csv",
-      type: "text/csv; charset=utf-8",
-      disposition: "attachment"
-    )
+requested_filename = params[:filename].to_s.strip
+
+if requested_filename.empty?
+  requested_filename =
+    "シフト表_#{Time.current.strftime('%Y%m%d_%H%M')}"
+end
+
+# ファイル名として使用できない文字を「_」へ置換
+safe_filename = requested_filename.gsub(/[\\\/:*?"<>|]/, "_")
+
+# 利用者が.csvまで入力しても二重に付かないようにする
+safe_filename = safe_filename.delete_suffix(".csv")
+
+send_data(
+  "\uFEFF#{csv_data}",
+  filename: "#{safe_filename}.csv",
+  type: "text/csv; charset=utf-8",
+  disposition: "attachment"
+)
   end
 
   def csv_escape(value)
