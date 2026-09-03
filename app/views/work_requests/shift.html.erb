@@ -5,43 +5,35 @@
     シフト調整
   </p>
 
-  <h1 class="display-6 fw-bold">
-    シフト表
-    <!-- # --- ADD --- 2026/09/02 sou シフト表のエクスポートを追加  -- -->
-    <div class="d-flex justify-content-end">
-      <button type="button"
-              class="btn btn-primary justify-content-end"
-              data-bs-toggle="modal"
-              data-bs-target="#exportModal">
-        エクスポート
-      </button>
-    </div>
-    <!--end-->
-  </h1>
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <h1 class="display-6 fw-bold mb-0">シフト表</h1>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">
+      エクスポート
+    </button>
+  </div>
+
+
 </div>
-<!-- -----------------デザインの調整   END-------------- -->
-
-
-<div class="table-responsive rounded-4">
-  <table class="table table-bordered text-center align-middle mb-0">
+<div class="shift-table-wrapper table-responsive rounded-4 border">
+  <table class="shift-table table table-bordered text-center align-middle mb-0">
     <thead>
       <tr>
-        <th></th>
+        <th class="shift-table__staff-header"></th>
         <% @time_slot_groups.each do |date, slots| %>
-          <th colspan="<%= slots.size %>"><%= date.strftime("%-m/%-d") %></th>
+          <th class="shift-table__date-header" colspan="<%= slots.size %>"><%= date.strftime("%-m/%-d") %></th>
         <% end %>
       </tr>
       <tr>
-        <th></th>
+        <th class="shift-table__staff-header"></th>
         <% @time_slots.each do |slot| %>
-          <th><%= slot.strftime("%H:%M~") %></th>
+          <th class="shift-table__time-header"><%= slot.strftime("%H:%M~") %></th>
         <% end %>
       </tr>
     </thead>
     <tbody>
       <% @shift_rows.each do |row| %>
         <tr>
-          <th><%= row[:staff].name if row[:show_name] %></th>
+          <th class="shift-table__staff-header"><%= row[:staff].name if row[:show_name] %></th>
           <% row[:cells].each do |cell| %>
             <% cell_class = cell[:state] == :confirmed ? "table-success" : cell[:state] == :draft ? "table-warning" : "" %>
             <td class="shift-cell shift-cell--<%= cell[:state] %> <%= cell_class %>"><%= cell[:label] %></td>
