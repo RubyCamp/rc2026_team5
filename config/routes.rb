@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   # --- ADD --- 2026/09/01 sou 仮割当ページへの画面遷移機能実装  --- start ---
 
   get "work_requests/draft", to: "work_requests#draft", as: :draft
-
+  get "work_requests/unassign_all", to: "work_requests#unassign_all", as: :unassign_all
     # --- ADD --- 2026/09/01 sou 仮割当ページへの画面遷移機能実装  --- end ---
 
     get "work_requests/shift", to: "work_requests#shift"

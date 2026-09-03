@@ -51,8 +51,8 @@
 <button type="button"
         class="btn btn-primary"
         data-bs-toggle="modal"
-        data-bs-target="#draftAssignmentModal">
-  仮割当
+        data-bs-target="#unassignAssignmentModal">
+  仮割当全解除
 </button>
 </div>
 
@@ -135,6 +135,25 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
         <!-- GETで既存の仮割当処理を呼び、割当欄だけを更新する。 -->
         <%= link_to "実行する", draft_path(id: @work_request.id), class: "btn btn-primary", data: { turbo_stream: true } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="unassignAssignmentModal" tabindex="-1" aria-labelledby="unassignAssignmentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title fs-5" id="unassignAssignmentModalLabel">仮割当解除の確認</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+      </div>
+      <div class="modal-body">
+        aさんの仮割当を解除しますか？
+      </div>
+      <div class="modal-footer" id="unassign-assignment-modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+        <!-- GETで既存の仮割当処理を呼び、割当欄だけを更新する。 -->
+        <%= link_to "全解除する", unassign_all_path(id: @work_request.id), class: "btn btn-primary", data: { turbo_stream: true } %>
       </div>
     </div>
   </div>
