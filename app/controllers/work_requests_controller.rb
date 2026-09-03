@@ -104,7 +104,7 @@ class WorkRequestsController < ApplicationController
       .includes(:business, :required_skill, assignments: :staff_member)
       .order(:starts_at)
 
-    @date, @time_slots = build_time_slots(@work_requests)
+    @time_slot_groups, @time_slots = build_time_slots(@work_requests)
     @shift_rows = build_shift_rows(@staff_members, @work_requests, @time_slots)
   end
 
@@ -190,13 +190,14 @@ class WorkRequestsController < ApplicationController
     params.expect(work_request: [ :notes ])
   end
   def build_time_slots(work_requests)
-    return [ nil, [] ] if work_requests.empty?
+    return [ {}, [] ] if work_requests.empty?
 
-    date = work_requests.map { |wr| wr.starts_at.to_date }.min
-    start_hour = work_requests.map { |wr| wr.starts_at.hour }.min
-    end_hour = work_requests.map { |wr| wr.ends_at.hour }.max
-    slots = (start_hour...end_hour).map { |h| Time.zone.local(date.year, date.month, date.day, h) }
-    [ date, slots ]
+    start_time = work_requests.map(&:starts_at).min.beginning_of_hour
+    latest_end = work_requests.map(&:ends_at).max
+    end_time = latest_end.beginning_of_hour
+    end_time += 1.hour unless latest_end.min.zero? && latest_end.sec.zero?
+    slots = (start_time...end_time).step(1.hour).to_a
+    [ slots.group_by(&:to_date), slots ]
   end
 
   def build_shift_rows(staff_members, work_requests, time_slots)
@@ -211,15 +212,14 @@ class WorkRequestsController < ApplicationController
 
       tracks.each_with_index.map do |track, index|
         cells = time_slots.map do |slot|
-          hour = slot.hour
-          occupying = track.select { |wr, _a| wr.starts_at.hour <= hour && hour < wr.ends_at.hour }
+          occupying = track.select { |wr, _a| wr.starts_at <= slot && slot < wr.ends_at }
 
           if occupying.empty?
             { state: :empty, label: nil }
           else
             wr, a = occupying.first
-            first_hour = wr.starts_at.hour == hour
-            last_hour = wr.ends_at.hour - 1 == hour
+            first_hour = wr.starts_at.beginning_of_hour == slot
+            last_hour = slot + 1.hour >= wr.ends_at
             mark = a.status == "confirmed" ? "○" : "△"
             label =
               if first_hour && last_hour

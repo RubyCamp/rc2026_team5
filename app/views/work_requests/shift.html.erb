@@ -27,7 +27,9 @@
     <thead>
       <tr>
         <th></th>
-        <th colspan="<%= @time_slots.size %>"><%= @date&.strftime("%-m/%-d") %></th>
+        <% @time_slot_groups.each do |date, slots| %>
+          <th colspan="<%= slots.size %>"><%= date.strftime("%-m/%-d") %></th>
+        <% end %>
       </tr>
       <tr>
         <th></th>
